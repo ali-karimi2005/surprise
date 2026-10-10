@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>پنل ادمین</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Vazirmatn', Tahoma, sans-serif; background: #fff0f5; margin: 0; padding: 20px; color: #4a1d2e; }
+  .card { background: #fff; border-radius: 16px; padding: 16px 20px; margin: 14px auto; max-width: 900px; box-shadow: 0 6px 18px rgba(180,30,80,.12); }
+  .login { max-width: 340px; margin: 80px auto; background: #fff; padding: 24px; border-radius: 16px; display: grid; gap: 10px; }
+  input { padding: 10px; border-radius: 10px; border: 1px solid #f0c0d0; font-family: inherit; }
+  button { padding: 10px 18px; border: 0; border-radius: 20px; background: #ff4f7f; color: #fff; font-family: inherit; cursor: pointer; }
+  .pill { display: inline-block; background: #ffe0ea; border-radius: 12px; padding: 2px 10px; margin: 2px; }
+  .ev { font-size: .85rem; border-bottom: 1px dashed #f3d6e0; padding: 4px 0; }
+  .err { color: #b0003a; }
+  details { margin-top: 10px; }
+  h1 { text-align: center; }
+</style>
+</head>
+<body>
+<div id="login" class="login">
+  <h2>ورود ادمین</h2>
+  <input id="u" placeholder="یوزر">
+  <input id="p" type="password" placeholder="رمز">
+  <button id="go">ورود</button>
+  <p class="err" id="err"></p>
+</div>
+
+<div id="panel" hidden>
+  <h1>داشبورد 💖</h1>
+  <div style="text-align:center"><button id="refresh">بروزرسانی</button></div>
+  <div id="list"></div>
+</div>
+
+<script>
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  let token = sessionStorage.getItem('adminToken');
+
+  async function load() {
+    const r = await fetch('/api/admin/data', { headers: { 'x-token': token } });
+    if (!r.ok) { sessionStorage.removeItem('adminToken'); token = null; $('#panel').hidden = true; $('#login').hidden = false; return; }
+    const data = await r.json();
+    $('#login').hidden = true;
+    $('#panel').hidden = false;
+    $('#list').innerHTML = data.map(render).join('') || '<p>هنوز کسی وارد نشده</p>';
+  }
+
+  function render(s) {
+    const hobbies = (s.hobbies || []).map((h) => `<span class="pill">${esc(h)}</span>`).join('') || '-';
+    const events = (s.events || []).map((e) =>
+      `<div class="ev">${new Date(e.time).toLocaleString('fa-IR')} — <b>${esc(e.type)}</b> ${esc(JSON.stringify(e.detail))}</div>`).join('');
+    return `
+      <div class="card">
+        <h3>ثبت: ${new Date(s.created).toLocaleString('fa-IR')}</h3>
+        <p><b>سرگرمی‌ها:</b> ${hobbies}</p>
+        <p><b>اخلاق‌ها:</b> ${esc(s.traits || '-')}</p>
+        <p><b>شانس بله:</b> ${s.yes_chance ?? '-'} از ۱۰ &nbsp; | &nbsp; <b>شانس رابطه:</b> ${s.relationship_chance ?? '-'} از ۱۰ &nbsp; | &nbsp; <b>مسیر:</b> ${esc(s.route || '-')}</p>
+        <details><summary>همه‌ی کلیک‌ها (${(s.events || []).length})</summary>${events}</details>
+      </div>`;
+  }
+
+  $('#go').addEventListener('click', async () => {
+    const r = await fetch('/api/admin/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: $('#u').value, password: $('#p').value }),
+    });
+    if (!r.ok) { $('#err').textContent = 'یوزر یا رمز اشتباه است'; return; }
+    token = (await r.json()).token;
+    sessionStorage.setItem('adminToken', token);
+    load();
+  });
+  $('#refresh').addEventListener('click', load);
+  if (token) load();
+</script>
+</body>
+</html>

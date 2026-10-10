@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>برای تو 💖</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  /* ✏️ ==========================================================
+     ✏️ استایل صفحه. رنگ‌های اصلی در اینجا:
+     ✏️ ========================================================== */
+  :root { --rose: #ff4f7f; --deep: #8a1040; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; font-family: 'Vazirmatn', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #ffe3ec, #ffc6d9 50%, #f7b2c8);
+    color: #fff; overflow-x: hidden;
+  }
+
+  /* ✏️ بک‌گراند صفحه اصلی: عکس را با نام bg.jpg داخل public/images بگذارید */
+  .bg-photo {
+    position: fixed; inset: 0; z-index: 0;
+    background: url('/images/bg.jpg') center/cover no-repeat;
+    filter: brightness(.45);
+  }
+  .bg-photo::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,79,127,.25), rgba(138,16,64,.55));
+  }
+
+  /* قالب‌بندی بخش‌ها */
+  .view { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; overflow: auto; padding: 20px; z-index: 1; }
+  .view.active { display: flex; animation: fadeUp .6s ease; }
+  #home.view.active { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+  .glass {
+    background: rgba(255,255,255,.2); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,.45); border-radius: 24px; padding: 24px;
+    box-shadow: 0 12px 40px rgba(180,30,80,.3); margin: 16px auto; max-width: 640px;
+    text-shadow: 0 1px 6px rgba(80,0,30,.35);
+  }
+  .glass h2, .glass h3 { margin-top: 0; }
+  .center { text-align: center; }
+  .content { position: relative; z-index: 2; max-width: 720px; margin: auto; padding: 30px 16px 10px; }
+  footer.credit { text-align: center; margin: 30px 0 10px; opacity: .9; font-size: .9rem; }
+
+  /* صفحه لودینگ */
+  .loader-heart { font-size: 72px; animation: beat 1s infinite; }
+  @keyframes beat { 0%,100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+  .bar { width: 240px; height: 8px; background: rgba(255,255,255,.4); border-radius: 10px; overflow: hidden; margin: 22px auto; }
+  .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #fff, #ffd1df); animation: load 3.2s forwards; }
+  @keyframes load { to { width: 100%; } }
+
+  /* قلب‌های در حال بالا رفتن */
+  .hearts { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .hearts span { position: absolute; bottom: -40px; font-size: 18px; opacity: .75; animation: rise linear infinite; }
+  @keyframes rise { to { transform: translateY(-110vh) rotate(25deg); opacity: 0; } }
+
+  /* دکمه‌ها و فرم‌ها */
+  .chip { display: inline-block; margin: 4px; padding: 8px 14px; border-radius: 30px; border: 1px solid rgba(255,255,255,.7); background: rgba(255,255,255,.15); color: #fff; cursor: pointer; font-family: inherit; }
+  .chip.on { background: var(--rose); border-color: var(--rose); }
+  .btn { padding: 12px 28px; border: 0; border-radius: 30px; font-family: inherit; font-size: 1rem; cursor: pointer; background: #fff; color: var(--deep); box-shadow: 0 6px 16px rgba(0,0,0,.15); }
+  .btn.yes { background: var(--rose); color: #fff; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .opt { display: block; width: 100%; margin: 10px 0; padding: 14px 18px; border-radius: 16px; border: 0; background: #fff; color: var(--deep); font-family: inherit; font-size: 1rem; cursor: pointer; text-align: right; transition: transform .2s; }
+  .opt:hover { transform: scale(1.02); }
+  textarea, input.field { width: 100%; padding: 12px; border-radius: 14px; border: 0; font-family: inherit; font-size: .95rem; margin-top: 8px; outline: none; }
+  .err { background: rgba(176,0,58,.55); padding: 10px 14px; border-radius: 14px; margin: 10px 0; min-height: 1em; }
+  .hint { font-size: .88rem; opacity: .95; min-height: 1.2em; }
+  .big-q h2 { text-align: center; font-size: 1.6rem; }
+  .question-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; min-height: 90px; }
+
+  /* دکمه‌ی «نه» که فرار می‌کند */
+  .no-zone { position: relative; width: 200px; height: 60px; }
+  .no-zone .no { position: absolute; left: 0; top: 0; background: #e5e5e5; color: #444; transition: left .25s, top .25s; }
+  .broken span { font-size: 1.5rem; margin: 0 2px; display: inline-block; animation: beat 1s infinite; }
+  .picker { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 10px 0 20px; }
+  .picker button { width: 46px; height: 46px; border-radius: 50%; border: 0; background: rgba(255,255,255,.25); color: #fff; font-family: inherit; font-size: 1rem; cursor: pointer; }
+  .picker button.on { background: var(--rose); box-shadow: 0 0 0 3px #fff; }
+  .msg { font-size: 1.15rem; margin: 14px 0; }
+  @media (max-width: 600px) { .slide-title { font-size: 1.5rem; } .no-zone { width: 160px; } }
+</style>
+</head>
+<body>
+<div class="hearts" id="hearts"></div>
+
+<!-- ✏️ ۱) صفحه‌ی لودینگ با نام سازنده -->
+<section id="loading" class="view active">
+  <div class="glass center">
+    <div class="loader-heart">💖</div>
+    <h1>یک چیز خاص برای تو</h1>
+    <div class="bar"><i></i></div>
+    <p>ساخته‌شده توسط <b>Alireza Karimi</b> | <b>علیرضا کریمی</b></p>
+  </div>
+</section>
+
+<!-- ✏️ ۲) صفحه‌ی ورود با رمز -->
+<section id="login" class="view">
+  <div class="glass center" style="max-width:420px">
+    <h2>یک رمز کوچولو 💌</h2>
+    <p>رمز را وارد کن تا ادامه بدهی</p>
+    <form id="login-form">
+      <!-- ✏️ رمز ورود: mobina.kj -->
+      <input class="field" id="pass" type="password" placeholder="رمز را وارد کن" autocomplete="off">
+      <button class="btn" style="margin-top:14px">ورود</button>
+    </form>
+    <p class="err" id="login-err"></p>
+  </div>
+</section>
+
+<!-- ✏️ ۳) صفحه‌ی اصلی -->
+<section id="home" class="view">
+  <div class="bg-photo"></div>
+  <div class="content">
+    <header class="center">
+      <h1 class="slide-title">سلام مبینا 💖</h1>
+      <p><b>لطفاً تا انتها در سایت بمون 💖</b></p>
+    </header>
+
+    <!-- ✏️ سرگرمی‌ها (حداقل ۵ تا) -->
+    <div class="glass">
+      <h3>اول بگو چه سرگرمی‌هایی داری (حداقل ۵ تا)</h3>
+      <div id="hobby-chips"></div>
+      <input class="field" id="hobby-extra" placeholder="سرگرمی‌های دیگه‌ت را با ویرگول جدا کن">
+      <p class="hint" id="hobby-count"></p>
+    </div>
+
+    <!-- ✏️ اخلاق‌های خوب و بد (حداقل ۲۰ کلمه) -->
+    <div class="glass">
+      <h3>راجب اخلاق‌های خوب و بدت بنویس (حداقل ۲۰ کلمه)</h3>
+      <textarea id="traits" rows="5" placeholder="هر چی دوست داری بنویس..."></textarea>
+      <p class="hint" id="traits-count"></p>
+    </div>
+
+    <!-- ✏️ سوال اصلی -->
+    <div class="glass big-q">
+      <h2>از من خوشت میاد یا نه؟ 🥺</h2>
+      <div class="question-row">
+        <button class="btn yes" id="yes" disabled>بله 💚</button>
+        <div class="no-zone">
+          <button class="btn no" id="no">نه</button>
+        </div>
+        <span class="broken" id="broken"></span>
+      </div>
+      <p class="hint" id="home-hint"></p>
+      <div id="no-options" hidden>
+        <p class="err" id="home-err"></p>
+        <button class="opt" data-go="sorry">۱ پشیمون شدم میخام بهت فرصت بدم</button>
+        <button class="opt" data-go="joke">۲ ولی شوخی کردم فرصت میدم</button>
+      </div>
+    </div>
+
+    <footer class="credit">ساخته‌شده توسط Alireza Karimi | علیرضا کریمی 💖</footer>
+  </div>
+</section>
+
+<!-- ✏️ ۴) صفحه‌ی «دوست داری بهم شانس بدی؟» -->
+<section id="chance" class="view">
+  <div class="glass center" style="max-width:520px">
+    <h2>دوست داری بهم شانس بدی؟ 🌹</h2>
+    <button class="opt" data-chance="1">۱ معلومه که آره</button>
+    <button class="opt" data-chance="2">۲ نه</button>
+    <div class="broken" id="chance-broken"></div>
+    <p class="err" id="chance-err"></p>
+    <div id="chance-no" hidden>
+      <button class="opt" data-go="sorry">۱ پشیمون شدم میخام بهت فرصت بدم</button>
+      <button class="opt" data-go="joke">۲ ولی شوخی کردم فرصت میدم</button>
+    </div>
+    <button class="opt" data-chance="3">۳ باید راجب بهت فکر کنم</button>
+    <p class="msg" id="chance-msg"></p>
+    <button class="btn" id="chance-next" hidden>ادامه</button>
+  </div>
+</section>
+
+<!-- ✏️ ۵) امتیازدهی ۱ تا ۱۰ -->
+<section id="final" class="view">
+  <div class="glass center" style="max-width:600px">
+    <h2>یه چیز آخر 💕</h2>
+    <p>از ۱ تا ۱۰ چقدر شانس میدی که بهم بله بدی؟</p>
+    <div class="picker" id="pick-yes"></div>
+    <p>از ۱ تا ۱۰ شانس رابطه‌مون چقدره؟</p>
+    <div class="picker" id="pick-rel"></div>
+    <button class="btn yes" id="submit-final" disabled>ثبت و ارسال 💌</button>
+  </div>
+</section>
+
+<!-- ✏️ ۶) صفحه‌ی تشکر -->
+<section id="thanks" class="view">
+  <div class="glass center">
+    <div class="loader-heart">💗</div>
+    <h2>ممنون که تا آخر موندی 💖</h2>
+    <p>هر چیزی که نوشتی ثبت شد.</p>
+  </div>
+</section>
+
+<script>
+  // ✏️ ==========================================================
+  // ✏️ منطق صفحه. هر کلیک و انتخاب به سرور فرستاده می‌شود تا در پنل ادمین دیده شود.
+  // ✏️ ==========================================================
+  const $ = (s) => document.querySelector(s);
+  const PASSWORD = 'mobina.kj'; // ✏️ رمز ورود
+  // ✏️ لیست سرگرمی‌ها (هر کدام را خواستی عوض یا اضافه کن)
+  const HOBBIES = ['موسیقی', 'سینما', 'کتاب‌خوانی', 'نقاشی', 'ورزش', 'سفر', 'عکاسی', 'آشپزی', 'بازی‌های ویدیویی', 'شعر', 'طبیعت‌گردی', 'کافه‌گردی'];
+
+  const sid = localStorage.getItem('sid') || ('s' + Date.now() + Math.random().toString(36).slice(2));
+  localStorage.setItem('sid', sid);
+
+  const state = { hobbies: new Set(), route: '', yes: null, rel: null };
+  const send = (url, body) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sid, ...body }) }).catch(() => {});
+  const log = (type, detail = {}) => send('/api/event', { type, detail });
+  const words = (t) => t.trim().split(/\s+/).filter(Boolean).length;
+  const extraHobbies = () => $('#hobby-extra').value.split(/[,،]/).map((s) => s.trim()).filter(Boolean);
+  const hobbyList = () => [...state.hobbies, ...extraHobbies()];
+  const saveProfile = () => send('/api/profile', { hobbies: hobbyList(), traits: $('#traits').value });
+  const addBroken = (el) => { const s = document.createElement('span'); s.textContent = '💔'; el.appendChild(s); };
+
+  function show(id) {
+    document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === id));
+    window.scrollTo(0, 0);
+  }
+
+  // قلب‌های پس‌زمینه
+  const hb = $('#hearts');
+  for (let i = 0; i < 22; i++) {
+    const s = document.createElement('span');
+    s.textContent = ['💖', '🌸', '💗', '✨'][i % 4];
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.animationDuration = (6 + Math.random() * 8) + 's';
+    s.style.animationDelay = (-Math.random() * 10) + 's';
+    hb.appendChild(s);
+  }
+
+  // لودینگ، سپس ورود
+  setTimeout(() => show('login'), 3500);
+
+  // ---------- ورود ----------
+  $('#login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('#pass').value.trim();
+    if (v === PASSWORD) {
+      log('login_ok');
+      show('home');
+      initHome();
+    } else {
+      log('login_fail', { attempt: v });
+      $('#login-err').textContent = 'رمز اشتباه است، دوباره امتحان کن 🌸';
+    }
+  });
+
+  // ---------- صفحه‌ی اصلی ----------
+  function initHome() {
+    $('#hobby-chips').innerHTML = HOBBIES.map((h) => `<button class="chip" data-h="${h}">${h}</button>`).join('');
+    $('#hobby-chips').onclick = (e) => {
+      const b = e.target.closest('.chip');
+      if (!b) return;
+      const h = b.dataset.h;
+      if (state.hobbies.has(h)) state.hobbies.delete(h); else state.hobbies.add(h);
+      b.classList.toggle('on', state.hobbies.has(h));
+      log('hobby_toggle', { hobby: h, selected: state.hobbies.has(h) });
+      checkHome();
+    };
+    $('#hobby-extra').addEventListener('input', checkHome);
+    $('#traits').addEventListener('input', checkHome);
+    checkHome();
+  }
+
+  function checkHome() {
+    const hn = hobbyList().length;
+    const wn = words($('#traits').value);
+    $('#hobby-count').textContent = `${hn} سرگرمی (حداقل ۵ تا)`;
+    $('#traits-count').textContent = `${wn} کلمه (حداقل ۲۰ کلمه بنویس)`;
+    const ok = hn >= 5 && wn >= 0;
+    $('#yes').disabled = !ok;
+    $('#home-hint').textContent = ok ? '' : 'اول حداقل ۵ سرگرمی و ۲۰ راجب اخلاقت بنویس 🌷';
+  }
+
+  // دکمه‌ی «بله»
+  $('#yes').addEventListener('click', () => {
+    state.route = 'home_yes';
+    saveProfile();
+    log('home_yes');
+    show('chance');
+  });
+
+  // دکمه‌ی «نه» که فرار می‌کند
+  const noBtn = $('#no');
+  const zone = document.querySelector('.no-zone');
+  function runaway() {
+    const maxX = Math.max(0, zone.clientWidth - noBtn.offsetWidth);
+    const maxY = Math.max(0, zone.clientHeight - noBtn.offsetHeight);
+    noBtn.style.left = Math.random() * maxX + 'px';
+    noBtn.style.top = Math.random() * maxY + 'px';
+    log('no_dodge');
+  }
+  noBtn.addEventListener('mouseenter', runaway);
+  noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); runaway(); }, { passive: false });
+
+  noBtn.addEventListener('click', () => {
+    addBroken($('#broken'));
+    state.route = 'home_no';
+    saveProfile();
+    log('home_no');
+    $('#home-err').textContent = 'لطفا گزینه دیگه‌ای رو انتخاب کن 🥺';
+    $('#no-options').hidden = false;
+  });
+
+  // ---------- صفحه‌ی شانس ----------
+  document.querySelectorAll('[data-chance]').forEach((b) => b.addEventListener('click', () => {
+    const c = b.dataset.chance;
+    log('chance_' + c);
+    if (c === '1') { state.route = 'chance_yes'; goFinal(); }
+    if (c === '2') {
+      addBroken($('#chance-broken'));
+      state.route = 'chance_no';
+      $('#chance-err').textContent = 'لطفا گزینه دیگه‌ای رو انتخاب کن 🥺';
+      $('#chance-no').hidden = false;
+    }
+    if (c === '3') {
+      state.route = 'chance_think';
+      $('#chance-msg').textContent = 'باشه عزیزم، فکر کن. منتظرم 🌷';
+      $('#chance-next').hidden = false;
+    }
+  }));
+  $('#chance-next').addEventListener('click', goFinal);
+
+  // گزینه‌های «پشیمون شدم» و «شوخی کردم» (هم در صفحه اصلی و هم صفحه‌ی شانس)
+  document.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => {
+    state.route += '>' + b.dataset.go;
+    log('option_' + b.dataset.go);
+    goFinal();
+  }));
+
+  // ---------- امتیازدهی ----------
+  function goFinal() {
+    saveProfile();
+    show('final');
+    buildPickers();
+  }
+  function buildPickers() {
+    const make = (key) => [...Array(10)].map((_, i) => `<button data-k="${key}" data-v="${i + 1}">${i + 1}</button>`).join('');
+    $('#pick-yes').innerHTML = make('yes');
+    $('#pick-rel').innerHTML = make('rel');
+    state.yes = null; state.rel = null;
+    $('#submit-final').disabled = true;
+  }
+  $('#final').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-v]');
+    if (!b) return;
+    const k = b.dataset.k;
+    state[k] = Number(b.dataset.v);
+    document.querySelectorAll(`[data-k="${k}"]`).forEach((x) => x.classList.toggle('on', x === b));
+    log('score_' + k, { value: state[k] });
+    $('#submit-final').disabled = !(state.yes && state.rel);
+  });
+  $('#submit-final').addEventListener('click', () => {
+    send('/api/final', {
+      yes_chance: state.yes,
+      relationship_chance: state.rel,
+      route: state.route,
+      hobbies: hobbyList(),
+      traits: $('#traits').value,
+    });
+    show('thanks');
+  });
+</script>
+</body>
+</html>
